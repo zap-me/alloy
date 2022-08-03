@@ -36,20 +36,23 @@ class VerticalSpacer extends StatelessWidget {
   }
 }
 
-class BronzeFormInput extends StatelessWidget {
+class BronzeFormInput extends StatefulWidget {
   final TextEditingController? controller;
   final FormFieldValidator<dynamic>? validator;
   final String? labelText;
   final bool? obscureText;
+  final bool? toggleObscure;
   final Icon? icon;
   final TextInputType? keyboardType;
   final Widget? suffixIcon;
   final String? suffixText;
   final void Function(String?)? onChanged;
+
   BronzeFormInput(this.controller,
       {this.validator,
       this.labelText,
       this.obscureText,
+      this.toggleObscure,
       this.icon,
       this.keyboardType,
       this.suffixIcon,
@@ -58,23 +61,53 @@ class BronzeFormInput extends StatelessWidget {
       : super();
 
   @override
+  State<BronzeFormInput> createState() => _BronzeFormInputState();
+}
+
+class _BronzeFormInputState extends State<BronzeFormInput> {
+  bool obscureText = false;
+  Widget? suffixIcon;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.toggleObscure == true &&
+        (widget.suffixIcon != null || widget.suffixText != null))
+      throw Exception(
+          'if "toggleObscureBtn" we cannot have a "suffixIcon" or "suffixText"');
+    if (widget.obscureText == true) obscureText = true;
+    if (widget.suffixIcon != null) suffixIcon = widget.suffixIcon;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (widget.toggleObscure == true)
+      suffixIcon = IconButton(
+          onPressed: () {
+            setState(() {
+              obscureText = !obscureText;
+            });
+          },
+          icon: Icon(
+              obscureText == true ? Icons.visibility : Icons.visibility_off),
+          tooltip: 'Show text');
     return TextFormField(
-        controller: this.controller,
+        controller: widget.controller,
         decoration: InputDecoration(
-          prefixIcon: this.icon == null
+          prefixIcon: widget.icon == null
               ? null
               : Padding(
                   padding: EdgeInsets.only(top: 5),
-                  child: this.icon,
+                  child: widget.icon,
                 ),
-          suffixIcon: this.suffixIcon,
+          suffixIcon: suffixIcon,
           contentPadding: const EdgeInsets.symmetric(vertical: 25.0),
           fillColor: Color(0xFFFFFFFF).withOpacity(0.1),
           filled: true,
           floatingLabelBehavior: FloatingLabelBehavior.never,
-          labelText: this.labelText ?? null,
-          suffixText: this.suffixText,
+          labelText: widget.labelText ?? null,
+          suffixText: widget.suffixText,
           constraints: BoxConstraints(
               minWidth: cfg.ButtonWidth, maxWidth: cfg.ButtonWidth),
           border: OutlineInputBorder(
@@ -85,10 +118,10 @@ class BronzeFormInput extends StatelessWidget {
             ),
           ),
         ),
-        keyboardType: this.keyboardType ?? null,
-        obscureText: this.obscureText ?? false,
-        validator: this.validator ?? null,
-        onChanged: this.onChanged);
+        keyboardType: widget.keyboardType,
+        obscureText: obscureText,
+        validator: widget.validator,
+        onChanged: widget.onChanged);
   }
 }
 

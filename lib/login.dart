@@ -84,35 +84,10 @@ class LoginResult with _$LoginResult {
   const factory LoginResult.nothing() = LRNothing;
 }
 
-FormFieldValidator deviceNameValidate = (value) {
-  if (value == null || value.isEmpty) return 'Please enter a device name';
-  return null;
-};
-
 FormFieldValidator emailValidate = (value) {
   value = value?.trim();
   if (value == null || value.isEmpty) return 'Please enter an email';
   if (!EmailValidator.validate(value)) return 'Invalid email';
-  return null;
-};
-
-FormFieldValidator passwordValidate = (value) {
-  if (value == null || value.isEmpty) return 'Please enter a password';
-  return null;
-};
-
-FormFieldValidator firstNameValidate = (value) {
-  if (value != null && value.isEmpty) return 'Please enter a first name';
-  return null;
-};
-
-FormFieldValidator lastNameValidate = (value) {
-  if (value == null || value.isEmpty) return 'Please enter a last name';
-  return null;
-};
-
-FormFieldValidator newPasswordValidate = (value) {
-  if (value == null || value.isEmpty) return 'Please enter a new password';
   return null;
 };
 
@@ -227,6 +202,11 @@ class BronzeLoginFormState extends State<BronzeLoginForm> {
     }
   }
 
+  String? passwordValidate(value) {
+    if (value == null || value.isEmpty) return 'Please enter a password';
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -265,7 +245,8 @@ class BronzeLoginFormState extends State<BronzeLoginForm> {
                         icon: Icon(Icons.key_outlined),
                         validator: passwordValidate,
                         labelText: 'Password',
-                        obscureText: true),
+                        obscureText: true,
+                        toggleObscure: true),
                     VerticalSpacer(),
                     Visibility(
                       visible: widget.showTwoFactorCode,
@@ -331,6 +312,17 @@ class BronzeRegisterFormState extends State<BronzeRegisterForm> {
     super.initState();
   }
 
+  String? newPasswordValidate(value) {
+    if (value == null || value.isEmpty) return 'Please enter a new password';
+    return null;
+  }
+
+  String? passwordConfirmValidate(value) {
+    if (value == null || value.isEmpty) return 'Please confirm your password';
+    if (value != _newPasswordController.text) return 'Password does not match';
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -352,7 +344,7 @@ class BronzeRegisterFormState extends State<BronzeRegisterForm> {
                   ),
                   VerticalSpacer(height: 10),
                   Text(
-                    "Let's get started",
+                    "Let's sign up",
                     style: TextStyle(color: Color(0xFFFFFFFF), fontSize: 34),
                   ),
                   VerticalSpacer(),
@@ -366,41 +358,19 @@ class BronzeRegisterFormState extends State<BronzeRegisterForm> {
                     _newPasswordController,
                     icon: Icon(Icons.key_outlined),
                     obscureText: true,
+                    toggleObscure: true,
                     labelText: 'New Password',
                     validator: newPasswordValidate,
                   ),
                   VerticalSpacer(),
-                  TextFormField(
-                      textAlign: TextAlign.center,
-                      controller: _passwordConfirmController,
-                      decoration: InputDecoration(
-                        prefixIcon: Padding(
-                          padding: EdgeInsets.only(top: 5),
-                          child: Icon(Icons.key_outlined),
-                        ),
-                        fillColor: Color(0xFFFFFFFF).withOpacity(0.1),
-                        filled: true,
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: 25.0),
-                        labelText: 'Password Confirmation',
-                        constraints: BoxConstraints(
-                            minWidth: ButtonWidth, maxWidth: ButtonWidth),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(40),
-                          borderSide: BorderSide(
-                            width: 0,
-                            style: BorderStyle.none,
-                          ),
-                        ),
-                      ),
-                      obscureText: true,
-                      validator: (value) {
-                        if (value == null || value.isEmpty)
-                          return 'Please confirm your password';
-                        if (value != _newPasswordController.text)
-                          return 'Password does not match';
-                        return null;
-                      }),
+                  BronzeFormInput(
+                    _passwordConfirmController,
+                    icon: Icon(Icons.key_outlined),
+                    obscureText: true,
+                    toggleObscure: true,
+                    labelText: 'Password Confirmation',
+                    validator: passwordConfirmValidate,
+                  ),
                   VerticalSpacer(),
                   BronzeRoundedButton(() async {
                     if (_formKey.currentState == null) return;
@@ -493,8 +463,9 @@ class StagingFormState extends State<StagingForm> {
     var acct = await res.when((content) async {
       var cancelled = false;
       Acct? acct;
-      showAlertDialog(context, 'waiting for you to confirm the email...',
-          showCancel: true, onCancel: () => cancelled = true);
+      showAlertDialog(context,
+          'we are sending you a confirmation email, please follow the link in the email to confirm...',
+          showCancel: true, onCancel: () => cancelled = true, maxLines: null);
       while (acct == null && !cancelled) {
         await Future.delayed(Duration(seconds: 5));
         // save account if login successful
@@ -573,8 +544,9 @@ class StagingFormState extends State<StagingForm> {
     return await result.when((token) async {
       Acct? acct;
       var cancelled = false;
-      showAlertDialog(context, 'waiting for you to confirm the email...',
-          showCancel: true, onCancel: () => cancelled = true);
+      showAlertDialog(context,
+          'we are sending you a confirmation email, please follow the link in the email to confirm...',
+          showCancel: true, onCancel: () => cancelled = true, maxLines: null);
       while (acct == null && !cancelled) {
         await Future.delayed(Duration(seconds: 5));
         // claim api key
